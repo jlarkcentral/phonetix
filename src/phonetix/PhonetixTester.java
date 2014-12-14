@@ -1,7 +1,9 @@
 package phonetix;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
-import static phonetic.Phonetic.genererPhonetic;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static phonetix.Phonetix.phonetize;
@@ -13,16 +15,24 @@ import static phonetix.Phonetix.phonetize;
 
 public class PhonetixTester {
 
+	private static final Map<String, String> testMap;
+	static
+	{
+		testMap = new HashMap<String, String>();
+		testMap.put("complètement", "KONPLETEMAN");
+		testMap.put("compltement", "KONPLETEMAN");
+		testMap.put("tro", "TRO");
+		testMap.put("trop", "TRO");
+		testMap.put("bien", "BIIN");
+		testMap.put("bi1", "BIIN");
+		testMap.put("ça", "SA");
+		testMap.put("ca", "SA");
+	}
+
 	public static void main(String[] args) {
-		assertThat(phonetize("complètement"), is("KONPLETEMAN"));
-		assertThat(phonetize("compltement"), is("KONPLETEMAN"));
-		assertThat(phonetize("tro"), is("TRO"));
-		assertThat(phonetize("trop"), is("TRO"));
-		assertThat(phonetize("bien"), is("BIN"));
-		assertThat(phonetize("bi1"), is("BIN"));
-		assertThat(phonetize("ça"), is("SA"));
-		assertThat(phonetize("ca"), is("SA"));
-		assertThat(phonetize("carrément"), is("KAREMAN"));
-		assertThat(phonetize("carement"), is("KAREMAN"));
+		for (String key : testMap.keySet()) {
+			if (!phonetize(key).equals(testMap.get(key)))
+				System.out.println("MISMATCH : \"" + key + "\" −−> \"" + phonetize(key) + "\", should be \"" + testMap.get(key) +"\"");
+		}
 	}
 }
