@@ -79,7 +79,7 @@ def main():
 	corpus           = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list('../../resources/mf_tweets_words.csv'))
 	wellformed_words = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list('../../resources/mf_tweets_words.csv') if e.split(',')[2] == 'YES')
 
-	for word in corpus:
+	for word in set(corpus)-set(wellformed_words):
 		unify(word, corpus, wellformed_words)
 
 
