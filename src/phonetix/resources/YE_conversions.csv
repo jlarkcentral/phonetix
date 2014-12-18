@@ -1,4 +1,0 @@
-([^VO])ILAG,$1IAJ
-([^TRH])UIL(AR|E)(.+),$1UI$2$3
-([G])UIL([AEO]),$1UI$2
-([NSPM])AIL([AEO]),$1AI$2
