@@ -46,13 +46,18 @@ def lexicon_filter(lexicon, word, dist):
 
 # returns the (first) word with minimal levenshtein distance from given word
 def min_levenshtein(candidates, word):
-	minlev = 99999
-	r = ''
-	for c in candidates:
-		if levenshtein(c, word) < minlev:
-			minlev = levenshtein(c, word)
-			r = c
-	return r
+	if len(candidates) == 0:
+		return word
+	elif len(candidates) == 1:
+		return candidates[0]
+	else:
+		minlev = 99999
+		r = ''
+		for c in candidates:
+			if levenshtein(c, word) < minlev:
+				minlev = levenshtein(c, word)
+				r = c
+		return r
 
 # simple cleaning - duplicate characters, non-alphabetic characters...
 def clean(word):
@@ -62,6 +67,7 @@ def clean(word):
 	return word
 
 # tries to get the cleanest form of the given word within the corpus
+# return the best candidates and the list of candidates
 def unify(word, corpus, wellformed_words):
 	phone_list = []
 	uni = clean(word)
@@ -69,19 +75,20 @@ def unify(word, corpus, wellformed_words):
 		if uni in corpus and x in wellformed_words:
 			if corpus[uni] == wellformed_words[x]:
 				phone_list.append(x)
-	if len(phone_list) == 1:
-		print word.encode('utf-8') + ' −−> ' + phone_list[0].encode('utf-8')
-	elif len(phone_list) > 1:
-		print word.encode('utf-8') + ' −−> ' + min_levenshtein(phone_list, uni).encode('utf-8') + ', from [' + ','.join([e.encode('utf-8') for e in phone_list]) +']'
-
+	return (min_levenshtein(phone_list, uni), phone_list)
+	
 
 def main():
-	corpus           = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list('../../resources/mf_tweets_words.csv'))
-	wellformed_words = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list('../../resources/mf_tweets_words.csv') if e.split(',')[2] == 'YES')
+	path             = '../../resources/mf_tweets_words.csv'
+	corpus           = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list(path))
+	wellformed_words = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list(path) if e.split(',')[2] == 'YES')
 
 	for word in set(corpus)-set(wellformed_words):
-		unify(word, corpus, wellformed_words)
-
+		u,l = unify(word, corpus, wellformed_words)
+		if len(l) <= 1:
+			print word.encode('utf-8') + ' −−> ' + u.encode('utf-8')
+		else:
+			print word.encode('utf-8') + ' −−> ' + u.encode('utf-8') + ', from [' + ','.join([e.encode('utf-8') for e in l]) +']'
 
 
 
