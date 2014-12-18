@@ -6,6 +6,8 @@ unification experiments
 '''
 
 import utils
+import sys
+import os
 import re
 import string
 from collections import defaultdict
@@ -31,19 +33,6 @@ def levenshtein(a,b):
             current[j] = min(add, delete, change)
     return current[n]
 
-# returns matching word in lexicon, given a distance dist
-def lexicon_filter(lexicon, word, dist):
-	if not '_' in word:
-		if word in lexicon:
-			return word+'_0'
-		else:
-			for w in lexicon:
-				if levenshtein(word, w) <= dist:
-					return w+'_'+str(dist)
-		return word
-	else:
-		return word
-
 # returns the (first) word with minimal levenshtein distance from given word
 def min_levenshtein(candidates, word):
 	if len(candidates) == 0:
@@ -59,6 +48,28 @@ def min_levenshtein(candidates, word):
 				r = c
 		return r
 
+# hanging on the levenphone : returns list of similar candidates by phoneme if leven
+# of word is less than the given distance
+def leven_phone(word, phone, wellformed_words, dist):
+	plist = []
+	for w in wellformed_words:
+		if levenshtein(word, w) <= dist and phone == wellformed_words[w]:
+			plist.append(w)
+	return plist
+
+# returns matching word in lexicon, given a distance dist
+def lexicon_filter(lexicon, word, dist):
+	if not '_' in word:
+		if word in lexicon:
+			return word+'_0'
+		else:
+			for w in lexicon:
+				if levenshtein(word, w) <= dist:
+					return w+'_'+str(dist)
+		return word
+	else:
+		return word
+
 # simple cleaning - duplicate characters, non-alphabetic characters...
 def clean(word):
 	word = word.lower()
@@ -68,28 +79,29 @@ def clean(word):
 
 # tries to get the cleanest form of the given word within the corpus
 # return the best candidates and the list of candidates
-def unify(word, corpus, wellformed_words):
+def unify(word, corpus, wellformed_words, dist):
 	phone_list = []
-	uni = clean(word)
+	uni = clean(word) if clean(word) in corpus else word
 	for x in wellformed_words:
-		if uni in corpus and x in wellformed_words:
-			if corpus[uni] == wellformed_words[x]:
-				phone_list.append(x)
+		if corpus[uni] == wellformed_words[x]:
+			phone_list.append(x)
+	if not phone_list:
+		phone_list = leven_phone(uni, corpus[uni], wellformed_words, dist)
 	return (min_levenshtein(phone_list, uni), phone_list)
 	
 
 def main():
-	path             = '../../resources/mf_tweets_words.csv'
+	path             = sys.argv[1] if len(sys.argv) == 2 else os.path.dirname(os.path.realpath(__file__))\
+						+'/../../resources/mf_tweets_words.csv'
 	corpus           = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list(path))
 	wellformed_words = dict((e.split(',')[0], e.split(',')[1]) for e in utils.load_list(path) if e.split(',')[2] == 'YES')
 
 	for word in set(corpus)-set(wellformed_words):
-		u,l = unify(word, corpus, wellformed_words)
+		u,l = unify(word, corpus, wellformed_words, 1)
 		if len(l) <= 1:
 			print word.encode('utf-8') + ' −−> ' + u.encode('utf-8')
 		else:
 			print word.encode('utf-8') + ' −−> ' + u.encode('utf-8') + ', from [' + ','.join([e.encode('utf-8') for e in l]) +']'
-
 
 
 
