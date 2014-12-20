@@ -1,9 +1,8 @@
 package phonetix;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import com.google.common.base.Joiner;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,19 +36,28 @@ public class PhonetixTester {
 		testMap.put("ca", "SA");
 	}
 
-	private static List<String> mf_words = loadList(System.getProperty("user.dir") + "/src/phonetix/resources/mf_twit_all_words.txt");
-	private static List<String> mf_words_nim = loadList("/home/feral/Documents/workspace/TAL_resources/mf_twit_notinmorphalou.txt");
+//	private static List<String> mf_words     = loadList(System.getProperty("user.dir") + "/src/phonetix/resources/mf_twit_all_words.txt");
+//	private static List<String> mf_words_nim = loadList("/home/feral/Documents/workspace/TAL_resources/mf_twit_notinmorphalou.txt");
+	private static List<String> morphalou    = loadList("/home/feral/Documents/workspace/TAL_resources/morphalou/morphalou_all.txt");
 
+	private static Map<String, List<String>> phones = new HashMap<>();
 
 	public static void main(String[] args) {
 //		for (String key : testMap.keySet()) {
 //			if (!phonetize(key).equals(testMap.get(key)))
 //				System.out.println("MISMATCH : \"" + key + "\" −−> \"" + phonetize(key) + "\", should be \"" + testMap.get(key) +"\"");
 //		}
-		for (int i = 0; i < mf_words.size(); i++) {
-			String word = mf_words.get(i);
-			System.out.println(word + " −−> " + genererPhonetic(word));
+		for (int i = 0; i < morphalou.size(); i++) {
+			String word = morphalou.get(i);
+//			System.out.println(word + " −−> " + genererPhonetic(word));
+			String phonetic = genererPhonetic(word);
+			if (!phones.containsKey(phonetic))
+				phones.put(phonetic, new ArrayList<String>());
+			phones.get(phonetic).add(word);
+
 		}
+
+		writeMap(phones, "/home/feral/Documents/workspace/TAL_resources/morphalou/morphalou_phones");
 	}
 
 
@@ -70,5 +78,21 @@ public class PhonetixTester {
 			e.printStackTrace();
 		}
 		return l;
+	}
+
+	private static void writeMap(Map<String, List<String>> map, String filename) {
+		BufferedWriter writer = null;
+		try {
+			writer = new BufferedWriter(new FileWriter(filename));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		for (String key : map.keySet()) {
+			try {
+				writer.write(key + ',' + Joiner.on(";").join(map.get(key))+'\n');
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
